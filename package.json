@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.39",
+    "@remix-run/node": "^2.10.2",
     "@codemirror/autocomplete": "^6.17.0",
     "@codemirror/commands": "^6.6.0",
     "@codemirror/lang-cpp": "^6.0.2",
