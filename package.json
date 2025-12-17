@@ -15,9 +15,11 @@
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "npm run lint -- --fix",
     "start": "bindings=$(./bindings.sh) && wrangler pages dev ./build/client $bindings",
+    "start:win": "wrangler pages dev ./build/client",
     "typecheck": "tsc",
     "typegen": "wrangler types",
-    "preview": "pnpm run build && pnpm run start"
+    "preview": "pnpm run build && pnpm run start",
+    "preview:win": "pnpm run build && pnpm run start:win"
   },
   "engines": {
     "node": ">=18.18.0"
