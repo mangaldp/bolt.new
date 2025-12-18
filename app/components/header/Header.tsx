@@ -4,6 +4,7 @@ import { chatStore } from '~/lib/stores/chat';
 import { classNames } from '~/utils/classNames';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
+import logoImage from '~/icons/logo-text.png';
 
 export function Header() {
   const chat = useStore(chatStore);
@@ -22,7 +23,7 @@ export function Header() {
       <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
         <div className="i-ph:sidebar-simple-duotone text-xl" />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
-          <img src="/icons/logo-text.png" alt="Logo" className="w-[150px] inline-block" />
+          <img src={logoImage} alt="Logo" className="w-[150px] inline-block" />
         </a>
       </div>
       <span className="flex-1 px-4 truncate text-center text-bolt-elements-textPrimary">
