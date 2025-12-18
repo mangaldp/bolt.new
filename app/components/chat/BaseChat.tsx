@@ -79,7 +79,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 <p className="mb-4 text-center text-bolt-elements-textSecondary">
                   Turn your idea into a working product.
                 </p>
-                <p class="text-center text-bolt-elements-textSecondary">Describe what you want to build...</p>
+                <p className="text-center text-bolt-elements-textSecondary">Describe what you want to build...</p>
               </div>
             )}
             <div
