@@ -11,17 +11,18 @@ export function Header() {
   return (
     <header
       className={classNames(
-        'flex items-center bg-bolt-elements-background-depth-1 p-5 border-b h-[var(--header-height)]',
+        'flex items-center p-5 border-b h-[var(--header-height)]',
         {
           'border-transparent': !chat.started,
           'border-bolt-elements-borderColor': chat.started,
         },
       )}
+      style={{ background: 'linear-gradient(to right, #d7d0e0ff 0%, #1f0939ff 100%)' }}
     >
       <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
         <div className="i-ph:sidebar-simple-duotone text-xl" />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
-          <span className="i-bolt:logo-text?mask w-[46px] inline-block" />
+          <img src="/icons/logo-text.png" alt="Logo" className="w-[150px] inline-block" />
         </a>
       </div>
       <span className="flex-1 px-4 truncate text-center text-bolt-elements-textPrimary">
