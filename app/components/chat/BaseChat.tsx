@@ -7,6 +7,8 @@ import { Workbench } from '~/components/workbench/Workbench.client';
 import { classNames } from '~/utils/classNames';
 import { Messages } from './Messages.client';
 import { SendButton } from './SendButton.client';
+import { AttachmentDropdown } from './AttachmentDropdown';
+import { FileAttachmentPreview, type FileAttachment } from './FileAttachment';
 
 import styles from './BaseChat.module.scss';
 
@@ -25,6 +27,9 @@ interface BaseChatProps {
   sendMessage?: (event: React.UIEvent, messageInput?: string) => void;
   handleInputChange?: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   enhancePrompt?: () => void;
+  attachments?: FileAttachment[];
+  onFileSelect?: (files: File[]) => void;
+  onRemoveAttachment?: (id: string) => void;
 }
 
 const EXAMPLE_PROMPTS = [
@@ -54,6 +59,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       handleInputChange,
       enhancePrompt,
       handleStop,
+      attachments = [],
+      onFileSelect,
+      onRemoveAttachment,
     },
     ref,
   ) => {
@@ -154,30 +162,21 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       />
                     )}
                   </ClientOnly>
+                  {attachments.length > 0 && onRemoveAttachment && (
+                    <FileAttachmentPreview attachments={attachments} onRemove={onRemoveAttachment} />
+                  )}
                   <div className="flex justify-between text-sm p-4 pt-2">
                     <div className="flex gap-1 items-center">
-                      <IconButton
-                        title="Enhance prompt"
-                        disabled={input.length === 0 || enhancingPrompt}
-                        className={classNames({
-                          'opacity-100!': enhancingPrompt,
-                          'text-bolt-elements-item-contentAccent! pr-1.5 enabled:hover:bg-bolt-elements-item-backgroundAccent!':
-                            promptEnhanced,
-                        })}
-                        onClick={() => enhancePrompt?.()}
-                      >
-                        {enhancingPrompt ? (
-                          <>
-                            <div className="i-svg-spinners:90-ring-with-bg text-bolt-elements-loader-progress text-xl"></div>
-                            <div className="ml-1.5">Enhancing prompt...</div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="i-bolt:stars text-xl"></div>
-                            {promptEnhanced && <div className="ml-1.5">Prompt enhanced</div>}
-                          </>
-                        )}
-                      </IconButton>
+                      {onFileSelect && enhancePrompt && (
+                        <AttachmentDropdown
+                          onFileSelect={onFileSelect}
+                          onEnhancePrompt={enhancePrompt}
+                          enhancingPrompt={enhancingPrompt}
+                          promptEnhanced={promptEnhanced}
+                          disabled={isStreaming}
+                          inputLength={input?.length || 0}
+                        />
+                      )}
                     </div>
                     {input.length > 3 ? (
                       <div className="text-xs text-bolt-elements-textTertiary">
