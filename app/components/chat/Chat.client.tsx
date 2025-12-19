@@ -12,6 +12,7 @@ import { fileModificationsToHTML } from '~/utils/diff';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { BaseChat } from './BaseChat';
+import type { FileAttachment } from './FileAttachment';
 
 const toastAnimation = cssTransition({
   enter: 'animated fadeInRight',
@@ -70,6 +71,7 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [chatStarted, setChatStarted] = useState(initialMessages.length > 0);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
 
   const { showChat } = useStore(chatStore);
 
@@ -146,6 +148,78 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
     setChatStarted(true);
   };
 
+  const compressImage = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          
+          // Max dimensions to reduce token usage
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate new dimensions while maintaining aspect ratio
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = (height * MAX_WIDTH) / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = (width * MAX_HEIGHT) / height;
+              height = MAX_HEIGHT;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compress to JPEG with 0.7 quality to reduce size
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedDataUrl);
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileSelect = async (files: File[]) => {
+    const newAttachments: FileAttachment[] = [];
+
+    for (const file of files) {
+      const id = `${Date.now()}-${Math.random()}`;
+      let type: 'image' | 'document' | 'code' = 'document';
+      let preview: string | undefined;
+
+      if (file.type.startsWith('image/')) {
+        type = 'image';
+        // Compress image to reduce token usage
+        preview = await compressImage(file);
+      } else if (
+        file.name.match(/\.(js|jsx|ts|tsx|py|java|cpp|c|html|css|json|xml|md)$/i)
+      ) {
+        type = 'code';
+      }
+
+      newAttachments.push({ id, file, preview, type });
+    }
+
+    setAttachments((prev) => [...prev, ...newAttachments]);
+  };
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((att) => att.id !== id));
+  };
+
   const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
     const _input = messageInput || input;
 
@@ -168,6 +242,70 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     runAnimation();
 
+    // Process attachments and create multimodal content
+    let messageContent: any = _input;
+    const hasImages = attachments.some(att => att.type === 'image');
+    
+    if (attachments.length > 0) {
+      // Check if we have images - use multimodal format
+      if (hasImages) {
+        const contentParts: any[] = [];
+        
+        // Add text files first
+        const textFiles = await Promise.all(
+          attachments
+            .filter(att => att.type !== 'image')
+            .map(async (attachment) => {
+              const text = await attachment.file.text();
+              const maxChars = 10000;
+              const truncatedText = text.length > maxChars ? text.substring(0, maxChars) + '\n... (truncated)' : text;
+              return `[File: ${attachment.file.name}]\n\`\`\`\n${truncatedText}\n\`\`\``;
+            })
+        );
+        
+        // Build text content with user input and text files
+        const textContent = textFiles.length > 0 
+          ? `${textFiles.join('\n\n')}\n\n${_input}`
+          : _input;
+        
+        contentParts.push({
+          type: 'text',
+          text: textContent
+        });
+        
+        // Add images
+        for (const attachment of attachments) {
+          if (attachment.type === 'image' && attachment.preview) {
+            // Extract base64 data from data URL
+            const base64Data = attachment.preview.split(',')[1];
+            const mimeType = attachment.preview.split(';')[0].split(':')[1];
+            
+            contentParts.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mimeType,
+                data: base64Data
+              }
+            });
+          }
+        }
+        
+        messageContent = contentParts;
+      } else {
+        // No images, just text files - use simple string format
+        const fileContents = await Promise.all(
+          attachments.map(async (attachment) => {
+            const text = await attachment.file.text();
+            const maxChars = 10000;
+            const truncatedText = text.length > maxChars ? text.substring(0, maxChars) + '\n... (truncated)' : text;
+            return `[File: ${attachment.file.name}]\n\`\`\`\n${truncatedText}\n\`\`\``;
+          })
+        );
+        messageContent = `${fileContents.join('\n\n')}\n\n${_input}`;
+      }
+    }
+
     if (fileModifications !== undefined) {
       const diff = fileModificationsToHTML(fileModifications);
 
@@ -178,7 +316,16 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
        * manually reset the input and we'd have to manually pass in file attachments. However, those
        * aren't relevant here.
        */
-      append({ role: 'user', content: `${diff}\n\n${_input}` });
+      if (Array.isArray(messageContent)) {
+        // Multimodal content - prepend diff to text part
+        const textPart = messageContent.find(p => p.type === 'text');
+        if (textPart) {
+          textPart.text = `${diff}\n\n${textPart.text}`;
+        }
+        append({ role: 'user', content: messageContent });
+      } else {
+        append({ role: 'user', content: `${diff}\n\n${messageContent}` });
+      }
 
       /**
        * After sending a new message we reset all modifications since the model
@@ -186,10 +333,11 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
        */
       workbenchStore.resetAllFileModifications();
     } else {
-      append({ role: 'user', content: _input });
+      append({ role: 'user', content: messageContent });
     }
 
     setInput('');
+    setAttachments([]);
 
     resetEnhancer();
 
@@ -213,6 +361,9 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
       scrollRef={scrollRef}
       handleInputChange={handleInputChange}
       handleStop={abort}
+      attachments={attachments}
+      onFileSelect={handleFileSelect}
+      onRemoveAttachment={handleRemoveAttachment}
       messages={messages.map((message, i) => {
         if (message.role === 'user') {
           return message;
