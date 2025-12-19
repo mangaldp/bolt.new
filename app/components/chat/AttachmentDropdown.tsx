@@ -115,7 +115,7 @@ export function AttachmentDropdown({
             type="file"
             onChange={handleFileChange}
             className="hidden"
-            accept=".pdf,.txt,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.html,.css,.json,.xml,.md"
+            accept="image/*,.pdf,.txt,.js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.html,.css,.json,.xml,.md"
             multiple
           />
         </div>

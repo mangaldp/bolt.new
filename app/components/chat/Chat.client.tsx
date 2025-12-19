@@ -242,26 +242,68 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
 
     runAnimation();
 
-    let messageContent = _input;
-
-    // Process attachments
+    // Process attachments and create multimodal content
+    let messageContent: any = _input;
+    const hasImages = attachments.some(att => att.type === 'image');
+    
     if (attachments.length > 0) {
-      const fileContents = await Promise.all(
-        attachments.map(async (attachment) => {
+      // Check if we have images - use multimodal format
+      if (hasImages) {
+        const contentParts: any[] = [];
+        
+        // Add text files first
+        const textFiles = await Promise.all(
+          attachments
+            .filter(att => att.type !== 'image')
+            .map(async (attachment) => {
+              const text = await attachment.file.text();
+              const maxChars = 10000;
+              const truncatedText = text.length > maxChars ? text.substring(0, maxChars) + '\n... (truncated)' : text;
+              return `[File: ${attachment.file.name}]\n\`\`\`\n${truncatedText}\n\`\`\``;
+            })
+        );
+        
+        // Build text content with user input and text files
+        const textContent = textFiles.length > 0 
+          ? `${textFiles.join('\n\n')}\n\n${_input}`
+          : _input;
+        
+        contentParts.push({
+          type: 'text',
+          text: textContent
+        });
+        
+        // Add images
+        for (const attachment of attachments) {
           if (attachment.type === 'image' && attachment.preview) {
-            // For images, just send a description to avoid token limits
-            const fileSize = (attachment.file.size / 1024).toFixed(2);
-            return `[Image attached: ${attachment.file.name} (${fileSize}KB)]\nNote: Image has been uploaded but cannot be processed in this message due to token limitations. Please describe what you'd like me to help with regarding this image.`;
-          } else {
+            // Extract base64 data from data URL
+            const base64Data = attachment.preview.split(',')[1];
+            const mimeType = attachment.preview.split(';')[0].split(':')[1];
+            
+            contentParts.push({
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mimeType,
+                data: base64Data
+              }
+            });
+          }
+        }
+        
+        messageContent = contentParts;
+      } else {
+        // No images, just text files - use simple string format
+        const fileContents = await Promise.all(
+          attachments.map(async (attachment) => {
             const text = await attachment.file.text();
-            // Limit text file size to prevent token overflow
             const maxChars = 10000;
             const truncatedText = text.length > maxChars ? text.substring(0, maxChars) + '\n... (truncated)' : text;
             return `[File: ${attachment.file.name}]\n\`\`\`\n${truncatedText}\n\`\`\``;
-          }
-        })
-      );
-      messageContent = `${fileContents.join('\n\n')}\n\n${_input}`;
+          })
+        );
+        messageContent = `${fileContents.join('\n\n')}\n\n${_input}`;
+      }
     }
 
     if (fileModifications !== undefined) {
@@ -274,7 +316,16 @@ export const ChatImpl = memo(({ initialMessages, storeMessageHistory }: ChatProp
        * manually reset the input and we'd have to manually pass in file attachments. However, those
        * aren't relevant here.
        */
-      append({ role: 'user', content: `${diff}\n\n${messageContent}` });
+      if (Array.isArray(messageContent)) {
+        // Multimodal content - prepend diff to text part
+        const textPart = messageContent.find(p => p.type === 'text');
+        if (textPart) {
+          textPart.text = `${diff}\n\n${textPart.text}`;
+        }
+        append({ role: 'user', content: messageContent });
+      } else {
+        append({ role: 'user', content: `${diff}\n\n${messageContent}` });
+      }
 
       /**
        * After sending a new message we reset all modifications since the model
