@@ -36,6 +36,29 @@ function getEditorTheme(settings: EditorSettings) {
       '&:focus-visible': {
         outline: 'none',
       },
+      // Auto-hide scrollbar
+      scrollbarWidth: 'thin',
+      scrollbarColor: 'transparent transparent',
+      '&:hover': {
+        scrollbarColor: 'rgba(128, 128, 128, 0.5) transparent',
+      },
+      '&::-webkit-scrollbar': {
+        width: '8px',
+        height: '8px',
+      },
+      '&::-webkit-scrollbar-track': {
+        background: 'transparent',
+      },
+      '&::-webkit-scrollbar-thumb': {
+        background: 'transparent',
+        borderRadius: '4px',
+      },
+      '&:hover::-webkit-scrollbar-thumb': {
+        background: 'rgba(128, 128, 128, 0.5)',
+      },
+      '&::-webkit-scrollbar-thumb:hover': {
+        background: 'rgba(128, 128, 128, 0.7)',
+      },
     },
     '.cm-line': {
       padding: '0 0 0 4px',

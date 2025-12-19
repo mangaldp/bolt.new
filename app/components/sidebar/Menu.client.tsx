@@ -107,7 +107,7 @@ export function Menu() {
       variants={menuVariants}
       className="flex flex-col side-menu fixed top-0 w-[350px] h-full bg-bolt-elements-background-depth-2 border-r rounded-r-3xl border-bolt-elements-borderColor z-sidebar shadow-xl shadow-bolt-elements-sidebar-dropdownShadow text-sm"
     >
-      <div className="flex items-center h-[var(--header-height)]" style={{ background: 'linear-gradient(to right, #d7d0e0ff 0%, #1f0939ff 100%)' }}>{/* Placeholder */}</div>
+      <div className="flex items-center h-[var(--header-height)]" style={{ background: '#342644' }}>{/* Placeholder */}</div>
       <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
         <div className="p-4">
           <a
@@ -119,7 +119,7 @@ export function Menu() {
           </a>
         </div>
         <div className="text-bolt-elements-textPrimary font-medium pl-6 pr-5 my-2">Your Chats</div>
-        <div className="flex-1 overflow-scroll pl-4 pr-5 pb-5">
+        <div className="flex-1 overflow-auto pl-4 pr-5 pb-5">
           {list.length === 0 && <div className="pl-2 text-bolt-elements-textTertiary">No previous conversations</div>}
           <DialogRoot open={dialogContent !== null}>
             {binDates(list).map(({ category, items }) => (

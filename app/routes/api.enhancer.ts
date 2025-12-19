@@ -39,7 +39,27 @@ async function enhancerAction({ context, request }: ActionFunctionArgs) {
           .split('\n')
           .filter((line) => line !== '')
           .map(parseStreamPart)
-          .map((part) => part.value)
+          .map((part) => {
+            // Handle different part types from parseStreamPart
+            if (typeof part.value === 'string') {
+              return part.value;
+            }
+            // If value is an object, try to extract text content
+            if (part.value && typeof part.value === 'object') {
+              // Handle text delta objects
+              if ('text' in part.value) {
+                return part.value.text;
+              }
+              // Handle other content types
+              if ('content' in part.value) {
+                return part.value.content;
+              }
+              // Log unexpected object structure for debugging
+              console.warn('Unexpected part.value structure:', part.value);
+              return '';
+            }
+            return '';
+          })
           .join('');
 
         controller.enqueue(encoder.encode(processedChunk));

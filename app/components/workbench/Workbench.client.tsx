@@ -109,7 +109,7 @@ export const Workbench = memo(({ chatStarted, isStreaming }: WorkspaceProps) => 
       >
         <div
           className={classNames(
-            'fixed top-[calc(var(--header-height)+1.5rem)] bottom-6 w-[var(--workbench-inner-width)] mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
+            'fixed top-[calc(var(--header-height)+1.5rem)] bottom-[4.5rem] w-[var(--workbench-inner-width)] mr-4 z-0 transition-[left,width] duration-200 bolt-ease-cubic-bezier',
             {
               'left-[var(--workbench-left)]': showWorkbench,
               'left-[100%]': !showWorkbench,

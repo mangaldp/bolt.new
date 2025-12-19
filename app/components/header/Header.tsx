@@ -17,15 +17,15 @@ export function Header() {
           'border-bolt-elements-borderColor': chat.started,
         },
       )}
-      style={{ background: 'linear-gradient(to right, #d7d0e0ff 0%, #1f0939ff 100%)' }}
+      style={{ background: 'linear-gradient(to right, #342644 0%, #f3ebfdff 50%, #342644 100%)' }}
     >
       <div className="flex items-center gap-2 z-logo text-bolt-elements-textPrimary cursor-pointer">
-        <div className="i-ph:sidebar-simple-duotone text-xl" />
+        <div className="i-ph:sidebar-simple-duotone text-xl text-white" />
         <a href="/" className="text-2xl font-semibold text-accent flex items-center">
           <img src="/logo-text.png" alt="Logo" className="w-[150px] inline-block" />
         </a>
       </div>
-      <span className="flex-1 px-4 truncate text-center text-bolt-elements-textPrimary">
+      <span className="flex-1 px-4 truncate text-center font-bold text-lg" style={{ color: '#342644' }}>
         <ClientOnly>{() => <ChatDescription />}</ClientOnly>
       </span>
       {chat.started && (

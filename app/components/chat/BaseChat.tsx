@@ -28,9 +28,9 @@ interface BaseChatProps {
 }
 
 const EXAMPLE_PROMPTS = [
-  { text: 'Build a todo app in React using Tailwind' },
-  { text: 'Build a simple blog using Astro' },
-  { text: 'Create a cookie consent form using Material UI' },
+  { text: 'Make a solar system simulation' },
+  { text: 'Make a single page app of cosmetic brand ecommerce for clothing and apparels' },
+  { text: 'Make a single page app of course selling website for teaching AI Tools and AI adoption' },
   { text: 'Make a space invaders game' },
   { text: 'How do I center a div?' },
 ];
@@ -72,18 +72,22 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         <div ref={scrollRef} className="flex overflow-y-auto w-full h-full">
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
-              <div id="intro" className="mt-[26vh] max-w-[800px] mx-auto">
-                <h1 className="text-5xl text-center font-bold text-bolt-elements-textPrimary mb-2">
-                  AI That Builds the Best, Not Talks
-                </h1>
-                <p className="mb-4 text-center text-bolt-elements-textSecondary">
-                  Turn your idea into a working product.
-                </p>
-                <p className="text-center text-bolt-elements-textSecondary">Describe what you want to build...</p>
-              </div>
+              <>
+                <div className="mt-[15vh] max-w-[200px] mx-auto mb-8">
+                  <img src="/Main_Logo.png" alt="Logo" className="w-full h-auto" />
+                </div>
+                <div id="intro" className="max-w-[900px] mx-auto">
+                  <h1 className="text-5xl text-center font-bold text-bolt-elements-textPrimary mb-2">
+                    AI That Builds The Best, Not Just Talks
+                  </h1>
+                  <p className="mb-4 text-2xl text-center text-bolt-elements-textSecondary">
+                    Turn your idea into a working product.
+                  </p>
+                </div>
+              </>
             )}
             <div
-              className={classNames('pt-4 px-6', {
+              className={classNames('pt-6 px-6', {
                 'h-full flex flex-col': chatStarted,
               })}
             >
@@ -131,7 +135,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       minHeight: TEXTAREA_MIN_HEIGHT,
                       maxHeight: TEXTAREA_MAX_HEIGHT,
                     }}
-                    placeholder="How can Bolt help you today?"
+                    placeholder="Describe what you want to build..."
                     translate="no"
                   />
                   <ClientOnly>
@@ -186,8 +190,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               </div>
             </div>
             {!chatStarted && (
-              <div id="examples" className="relative w-full max-w-xl mx-auto mt-8 flex justify-center">
-                <div className="flex flex-col space-y-2 [mask-image:linear-gradient(to_bottom,black_0%,transparent_180%)] hover:[mask-image:none]">
+              <div id="examples" className="relative w-full max-w-3xl mx-auto mt-8 flex justify-center">
+                <div className="flex flex-col space-y-2 [mask-image:linear-gradient(to_bottom,white_0%,transparent_150%)] hover:[mask-image:none] pb-30">
                   {EXAMPLE_PROMPTS.map((examplePrompt, index) => {
                     return (
                       <button
@@ -195,7 +199,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         onClick={(event) => {
                           sendMessage?.(event, examplePrompt.text);
                         }}
-                        className="group flex items-center w-full gap-2 justify-center bg-transparent text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary transition-theme"
+                        className="group flex items-center w-full gap-2 justify-center bg-transparent text-bolt-elements-textPrimary hover:text-bolt-elements-textPrimary transition-theme"
                       >
                         {examplePrompt.text}
                         <div className="i-ph:arrow-bend-down-left" />
